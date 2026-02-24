@@ -1,0 +1,133 @@
+:root {
+    --primary-color: #2196F3;
+    --success-color: #4CAF50;
+    --warning-color: #FF9800;
+    --danger-color: #f44336;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.habit-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.habit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.8em;
+}
+
+#cal-heatmap {
+    margin: 20px 0;
+}
+
+#progressChart {
+    max-height: 300px;
+}
+
+/* Cal-Heatmap customization */
+.cal-heatmap-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.cal-heatmap-container .graph-label {
+    fill: #333;
+    font-size: 12px;
+}
+
+.cal-heatmap-container rect {
+    cursor: pointer;
+}
+
+.cal-heatmap-container rect.q1 {
+    fill: #e0e0e0;
+}
+
+.cal-heatmap-container rect.q2 {
+    fill: #4CAF50;
+}
+
+/* Modal customizations */
+.modal-xl {
+    max-width: 1200px;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Stats badges */
+#habitStats .badge {
+    font-size: 1rem;
+    padding: 0.5em 1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .habit-card {
+        margin-bottom: 15px;
+    }
+    
+    #cal-heatmap {
+        overflow-x: auto;
+    }
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Quick action buttons */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Form styling */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
