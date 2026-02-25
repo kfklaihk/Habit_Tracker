@@ -1,6 +1,7 @@
 package com.habittracker.mapper;
 
 import com.habittracker.domain.DailyLog;
+import com.habittracker.dto.DailyLogFeedItem;
 import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
@@ -51,5 +52,38 @@ public interface DailyLogMapper {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Select("""
+            SELECT
+              dl.id AS id,
+              dl.user_id AS userId,
+              u.username AS username,
+              dl.log_date AS logDate,
+              dl.hours_coded AS hoursCoded,
+              dl.focus_score AS focusScore,
+              dl.notes AS notes
+            FROM daily_logs dl
+            JOIN users u ON u.id = dl.user_id
+            WHERE dl.user_id = #{userId}
+            ORDER BY dl.log_date DESC
+            LIMIT #{limit}
+            """)
+    List<DailyLogFeedItem> findRecentFeedByUserId(@Param("userId") Long userId, @Param("limit") int limit);
+
+    @Select("""
+            SELECT
+              dl.id AS id,
+              dl.user_id AS userId,
+              u.username AS username,
+              dl.log_date AS logDate,
+              dl.hours_coded AS hoursCoded,
+              dl.focus_score AS focusScore,
+              dl.notes AS notes
+            FROM daily_logs dl
+            JOIN users u ON u.id = dl.user_id
+            ORDER BY dl.log_date DESC
+            LIMIT #{limit}
+            """)
+    List<DailyLogFeedItem> findRecentFeedAllUsers(@Param("limit") int limit);
 }
 

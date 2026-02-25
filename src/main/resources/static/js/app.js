@@ -1,6 +1,5 @@
 const API_BASE_URL = window.location.origin + '/api';
 let currentUserId = null;
-let calHeatmap = null;
 let skillsPieChart = null;
 let monthlyBarChart = null;
 let allSkills = [];
@@ -90,7 +89,7 @@ async function refreshDashboard() {
         renderGoals(dashboard.activeGoals || []);
         renderSkillsPie(dashboard.skillStats || []);
         renderMonthlyHours(dashboard.monthlyHours || []);
-        await paintHeatmap();
+        await loadActivityFeed();
     } catch (error) {
         console.error('Error loading dashboard:', error);
     }
@@ -216,53 +215,57 @@ function renderMonthlyHours(monthlyHours) {
     });
 }
 
-async function paintHeatmap() {
-    const container = document.getElementById('cal-heatmap');
+async function loadActivityFeed() {
+    const container = document.getElementById('activityFeed');
     if (!container || !currentUserId) return;
 
-    // Clear previous render
-    container.innerHTML = '';
-    calHeatmap = new CalHeatmap();
-
-    const end = new Date();
-    const start = new Date(end);
-    start.setFullYear(start.getFullYear() - 1);
-
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = end.toISOString().split('T')[0];
-
-    let activityData = [];
+    container.textContent = 'Loading…';
     try {
-        const resp = await fetch(`${API_BASE_URL}/activity?userId=${encodeURIComponent(currentUserId)}&start=${startStr}&end=${endStr}`);
-        if (resp.ok) {
-            activityData = await resp.json();
-        } else {
-            console.error('Failed to load activity:', resp.status);
+        const resp = await fetch(`${API_BASE_URL}/daily-logs/recent?userId=${encodeURIComponent(currentUserId)}&limit=50`);
+        if (!resp.ok) {
+            container.textContent = 'Failed to load activity.';
+            return;
         }
+        const items = await resp.json();
+        renderActivityFeed(items);
     } catch (e) {
-        console.error('Failed to load activity:', e);
+        console.error(e);
+        container.textContent = 'Failed to load activity.';
+    }
+}
+
+function renderActivityFeed(items) {
+    const container = document.getElementById('activityFeed');
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="text-muted">No daily logs yet.</div>';
+        return;
     }
 
-    calHeatmap.paint({
-        itemSelector: "#cal-heatmap",
-        domain: { type: 'month', label: { text: 'MMM', position: 'top' } },
-        subDomain: { type: 'day', radius: 2, width: 14, height: 14, gutter: 2 },
-        date: { start },
-        range: 13,
-        data: {
-            source: activityData,
-            x: 'timestamp',
-            y: (d) => +d['value'],
-            groupY: 'sum'
-        },
-        scale: {
-            color: {
-                type: 'threshold',
-                range: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-                domain: [0, 2, 4, 6, 8]
-            }
-        }
-    });
+    const showUser = currentUserId === 'ALL';
+    const rows = items.map(it => {
+        const date = escapeHtml(it.logDate || '');
+        const hours = it.hoursCoded !== null && it.hoursCoded !== undefined ? escapeHtml(it.hoursCoded) : '—';
+        const focus = it.focusScore !== null && it.focusScore !== undefined ? escapeHtml(it.focusScore) : '—';
+        const notes = escapeHtml(it.notes || '');
+        const user = escapeHtml(it.username || `User ${it.userId || ''}`);
+
+        return `
+          <div class="py-2 border-bottom">
+            <div class="d-flex justify-content-between gap-3">
+              <div class="fw-semibold">${date}${showUser ? ` <span class="text-muted">· ${user}</span>` : ''}</div>
+              <div class="text-nowrap">
+                <span class="badge bg-primary-subtle text-primary-emphasis">Hours: ${hours}</span>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1">Focus: ${focus}</span>
+              </div>
+            </div>
+            ${notes ? `<div class="text-muted mt-1">${notes}</div>` : ''}
+          </div>
+        `;
+    }).join('');
+
+    container.innerHTML = rows;
 }
 
 async function loadSkills() {

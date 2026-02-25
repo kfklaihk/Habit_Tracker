@@ -30,10 +30,6 @@ body {
     padding: 0.4em 0.8em;
 }
 
-#cal-heatmap {
-    margin: 20px 0;
-}
-
 .stat-card {
     border-left: 4px solid var(--primary-color);
 }
@@ -75,26 +71,9 @@ body {
     overflow: auto;
 }
 
-/* Cal-Heatmap customization */
-.cal-heatmap-container {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.cal-heatmap-container .graph-label {
-    fill: #333;
-    font-size: 12px;
-}
-
-.cal-heatmap-container rect {
-    cursor: pointer;
-}
-
-.cal-heatmap-container rect.q1 {
-    fill: #e0e0e0;
-}
-
-.cal-heatmap-container rect.q2 {
-    fill: #4CAF50;
+.activity-feed {
+    max-height: 420px;
+    overflow: auto;
 }
 
 /* Modal customizations */

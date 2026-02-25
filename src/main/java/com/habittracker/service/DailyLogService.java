@@ -2,6 +2,7 @@ package com.habittracker.service;
 
 import com.habittracker.domain.DailyLog;
 import com.habittracker.domain.LogSkill;
+import com.habittracker.dto.DailyLogFeedItem;
 import com.habittracker.dto.DailyLogUpsertRequest;
 import com.habittracker.mapper.DailyLogMapper;
 import com.habittracker.mapper.LogSkillMapper;
@@ -27,6 +28,14 @@ public class DailyLogService {
 
     public List<DailyLog> getDailyLogs(Long userId, LocalDate startDate, LocalDate endDate) {
         return dailyLogMapper.findByUserIdAndDateRange(userId, startDate, endDate);
+    }
+
+    public List<DailyLogFeedItem> getRecentFeed(String userId, int limit) {
+        int clamped = Math.max(1, Math.min(limit, 200));
+        if (userId == null || userId.isBlank() || "ALL".equalsIgnoreCase(userId)) {
+            return dailyLogMapper.findRecentFeedAllUsers(clamped);
+        }
+        return dailyLogMapper.findRecentFeedByUserId(Long.parseLong(userId), clamped);
     }
 
     @Transactional

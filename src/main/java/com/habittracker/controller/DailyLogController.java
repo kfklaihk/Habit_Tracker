@@ -1,6 +1,7 @@
 package com.habittracker.controller;
 
 import com.habittracker.domain.DailyLog;
+import com.habittracker.dto.DailyLogFeedItem;
 import com.habittracker.dto.DailyLogUpsertRequest;
 import com.habittracker.service.DailyLogService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,14 @@ public class DailyLogController {
         LocalDate end = endDate != null ? endDate : LocalDate.now();
         LocalDate start = startDate != null ? startDate : end.minusDays(30);
         return ResponseEntity.ok(dailyLogService.getDailyLogs(userId, start, end));
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<DailyLogFeedItem>> getRecentFeed(
+            @RequestParam String userId,
+            @RequestParam(defaultValue = "50") int limit
+    ) {
+        return ResponseEntity.ok(dailyLogService.getRecentFeed(userId, limit));
     }
 
     @GetMapping("/{id}")
