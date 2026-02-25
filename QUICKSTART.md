@@ -44,22 +44,41 @@ cd $project
 ## Step 3: Access the Application
 
 - **Web App**: http://localhost:8080
-- **H2 Database Console**: http://localhost:8080/h2-console
-  - JDBC URL: `jdbc:h2:mem:habittracker`
-  - Username: `sa`
-  - Password: (leave blank)
+- **Database**: PostgreSQL (configure via `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`)
 
 ## Using the Application
 
 1. **Select a user** from the dropdown (2 sample users included)
-2. **View habits** - Click on any habit card to see details
-3. **Log completion** - Click "Log Today" to mark a habit as complete
-4. **Add new habits** - Click "Add New Habit" button
-5. **View statistics** - Click a habit to see heatmap, streaks, and charts
+2. **View dashboard** - Heatmap, streak, skills pie chart, weekly hours bar chart, goals
+3. **Log today** - Click "+ Log Today" and record hours/focus/skill minutes
+4. **Manage skills** - Click "Manage Skills" and add technologies you practice
 
 ## Stop the Application
 
 Press **Ctrl+C** in PowerShell
+
+## Local PostgreSQL (quick option)
+
+If you have Docker installed, you can start a local PostgreSQL like this:
+
+```powershell
+docker run --name dev-habit-postgres -p 5432:5432 `
+  -e POSTGRES_DB=dev_habit_tracker `
+  -e POSTGRES_USER=postgres `
+  -e POSTGRES_PASSWORD=postgres `
+  postgres:16
+```
+
+Then run the app with sample seed data:
+
+```powershell
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/dev_habit_tracker"
+$env:SPRING_DATASOURCE_USERNAME="postgres"
+$env:SPRING_DATASOURCE_PASSWORD="postgres"
+$env:SPRING_PROFILES_ACTIVE="dev"
+
+mvn spring-boot:run
+```
 
 ## Troubleshooting
 

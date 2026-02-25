@@ -114,19 +114,18 @@ Then open: **http://localhost:8080**
 ## After Application Starts
 
 1. **Web App**: http://localhost:8080
-2. **H2 Console**: http://localhost:8080/h2-console
-3. **Stop Server**: Press `Ctrl+C` in the terminal
+2. **Stop Server**: Press `Ctrl+C` in the terminal
 
 ---
 
 ## Accessing Sample Data
 
-Default load includes:
-- 2 users: John Doe, Jane Smith  
-- 4 habits: Daily Coding, Code Review, Tech Articles, Exercise
-- 30+ sample entries
+Sample data is only loaded in the **dev profile** (`SPRING_PROFILES_ACTIVE=dev`) and includes:
 
-Login with any user email from the system.
+- 2 users (e.g., `john_dev`, `jane_coder`)
+- skills (Java, Spring Boot, SQL, etc.)
+- daily logs + skill minutes
+- a couple of weekly-hours goals
 
 ---
 
@@ -135,5 +134,5 @@ Login with any user email from the system.
 1. Download Maven (Option 1, Step 1-2)
 2. Run the Quick Start Command above
 3. Open http://localhost:8080 in browser
-4. Create new habits and track your progress!
+4. Log a daily session and track your progress!
 

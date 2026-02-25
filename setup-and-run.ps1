@@ -94,6 +94,12 @@ Write-Host "Building and Running Application" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Default local database settings (override if needed)
+$env:SPRING_DATASOURCE_URL = $env:SPRING_DATASOURCE_URL ?? "jdbc:postgresql://localhost:5432/dev_habit_tracker"
+$env:SPRING_DATASOURCE_USERNAME = $env:SPRING_DATASOURCE_USERNAME ?? "postgres"
+$env:SPRING_DATASOURCE_PASSWORD = $env:SPRING_DATASOURCE_PASSWORD ?? "postgres"
+$env:SPRING_PROFILES_ACTIVE = $env:SPRING_PROFILES_ACTIVE ?? "dev"
+
 # Set the working directory
 cd "C:\Users\Kevin Lai\Downloads\Bootify_proj"
 
@@ -110,7 +116,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "=====================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Access the application at: http://localhost:8080" -ForegroundColor Cyan
-    Write-Host "H2 Console at: http://localhost:8080/h2-console" -ForegroundColor Cyan
+    Write-Host "Database: PostgreSQL (configure via SPRING_DATASOURCE_URL)" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Yellow
     Write-Host ""
