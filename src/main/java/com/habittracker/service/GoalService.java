@@ -15,10 +15,6 @@ public class GoalService {
 
     private final GoalMapper goalMapper;
 
-    public GoalService(GoalMapper goalMapper) {
-        this.goalMapper = goalMapper;
-    }
-
     public Optional<Goal> getGoalById(Long id) {
         return goalMapper.findById(id);
     }

@@ -26,12 +26,6 @@ public class DashboardService {
     private final DailyLogMapper dailyLogMapper;
     private final GoalMapper goalMapper;
 
-    public DashboardService(AnalyticsMapper analyticsMapper, DailyLogMapper dailyLogMapper, GoalMapper goalMapper) {
-        this.analyticsMapper = analyticsMapper;
-        this.dailyLogMapper = dailyLogMapper;
-        this.goalMapper = goalMapper;
-    }
-
     public DashboardResponse getDashboard(Long userId) {
         int totalDaysLogged = dailyLogMapper.countByUserId(userId);
 

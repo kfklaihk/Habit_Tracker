@@ -14,10 +14,6 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    public DashboardController(DashboardService dashboardService) {
-        this.dashboardService = dashboardService;
-    }
-
     @GetMapping
     public ResponseEntity<DashboardResponse> getDashboard(@RequestParam Long userId) {
         return ResponseEntity.ok(dashboardService.getDashboard(userId));

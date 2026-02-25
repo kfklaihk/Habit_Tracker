@@ -21,11 +21,6 @@ public class DailyLogService {
     private final DailyLogMapper dailyLogMapper;
     private final LogSkillMapper logSkillMapper;
 
-    public DailyLogService(DailyLogMapper dailyLogMapper, LogSkillMapper logSkillMapper) {
-        this.dailyLogMapper = dailyLogMapper;
-        this.logSkillMapper = logSkillMapper;
-    }
-
     public Optional<DailyLog> getDailyLogById(Long id) {
         return dailyLogMapper.findById(id);
     }

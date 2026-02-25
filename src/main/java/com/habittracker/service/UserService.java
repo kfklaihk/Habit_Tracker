@@ -15,11 +15,6 @@ public class UserService {
     
     private final UserMapper userMapper;
     
-    // Explicit constructor
-    public UserService(UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
-    
     public List<User> getAllUsers() {
         return userMapper.findAll();
     }

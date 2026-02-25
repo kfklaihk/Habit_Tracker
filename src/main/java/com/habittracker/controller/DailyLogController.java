@@ -20,10 +20,6 @@ public class DailyLogController {
 
     private final DailyLogService dailyLogService;
 
-    public DailyLogController(DailyLogService dailyLogService) {
-        this.dailyLogService = dailyLogService;
-    }
-
     @GetMapping
     public ResponseEntity<List<DailyLog>> getDailyLogs(
             @RequestParam Long userId,

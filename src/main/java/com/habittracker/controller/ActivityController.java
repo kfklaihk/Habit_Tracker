@@ -22,10 +22,6 @@ public class ActivityController {
 
     private final DailyLogService dailyLogService;
 
-    public ActivityController(DailyLogService dailyLogService) {
-        this.dailyLogService = dailyLogService;
-    }
-
     @GetMapping
     public ResponseEntity<List<ActivityPoint>> getActivity(
             @RequestParam Long userId,

@@ -17,10 +17,6 @@ public class SkillController {
 
     private final SkillService skillService;
 
-    public SkillController(SkillService skillService) {
-        this.skillService = skillService;
-    }
-
     @GetMapping
     public ResponseEntity<List<Skill>> getAllSkills() {
         return ResponseEntity.ok(skillService.getAllSkills());

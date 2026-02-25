@@ -17,10 +17,6 @@ public class GoalController {
 
     private final GoalService goalService;
 
-    public GoalController(GoalService goalService) {
-        this.goalService = goalService;
-    }
-
     @GetMapping
     public ResponseEntity<List<Goal>> getGoals(@RequestParam Long userId, @RequestParam(required = false) Boolean activeOnly) {
         if (Boolean.TRUE.equals(activeOnly)) {

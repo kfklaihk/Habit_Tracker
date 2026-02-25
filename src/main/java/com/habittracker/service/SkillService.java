@@ -15,10 +15,6 @@ public class SkillService {
 
     private final SkillMapper skillMapper;
 
-    public SkillService(SkillMapper skillMapper) {
-        this.skillMapper = skillMapper;
-    }
-
     public List<Skill> getAllSkills() {
         return skillMapper.findAll();
     }
