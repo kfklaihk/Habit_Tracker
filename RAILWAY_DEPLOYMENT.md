@@ -53,6 +53,9 @@ In your **app service** (not the Postgres service), go to **Variables** and set:
 Notes:
 - The `${{Postgres.*}}` syntax references variables from the PostgreSQL service (named “Postgres” by Railway; if you renamed it, use that name).
 - You do **not** need `DATABASE_PUBLIC_URL` for the app-to-database connection; the app runs inside Railway and should use the private connection.
+- If you prefer fewer variables, you can instead set:
+  - `DATABASE_URL=${{Postgres.DATABASE_URL}}`
+  - The app will auto-convert it to a JDBC connection at startup.
 
 ## 4) Deploy
 
