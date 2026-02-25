@@ -1,5 +1,10 @@
 # Developer Habit & Productivity Tracker
 
+https://habittracker-production-0b6c.up.railway.app/
+
+<img width="925" height="560" alt="image" src="https://github.com/user-attachments/assets/84cba623-3951-4706-b86e-9b4ce90a45e1" />
+
+
 A lightweight web app to **log your daily coding sessions** (hours + focus + notes), **tag skills with minutes practiced**, and visualize with  **skills distribution**, and **monthly hours**.
 
 ## Features
