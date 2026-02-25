@@ -25,18 +25,11 @@ public class RailwayDataSourceConfig {
     @Bean
     @Primary
     public DataSource dataSource(Environment env) {
-        String explicitJdbcUrl = firstNonBlank(
-                env.getProperty("SPRING_DATASOURCE_URL"),
-                env.getProperty("spring.datasource.url")
-        );
-        String explicitUser = firstNonBlank(
-                env.getProperty("SPRING_DATASOURCE_USERNAME"),
-                env.getProperty("spring.datasource.username")
-        );
-        String explicitPass = firstNonBlank(
-                env.getProperty("SPRING_DATASOURCE_PASSWORD"),
-                env.getProperty("spring.datasource.password")
-        );
+        // Only treat real env vars as explicit overrides.
+        // Do NOT treat application.yml defaults as "explicit", otherwise they override DATABASE_URL creds.
+        String explicitJdbcUrl = firstNonBlank(env.getProperty("SPRING_DATASOURCE_URL"));
+        String explicitUser = firstNonBlank(env.getProperty("SPRING_DATASOURCE_USERNAME"));
+        String explicitPass = firstNonBlank(env.getProperty("SPRING_DATASOURCE_PASSWORD"));
 
         if (explicitJdbcUrl != null && explicitJdbcUrl.startsWith("jdbc:")) {
             HikariDataSource ds = new HikariDataSource();

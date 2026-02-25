@@ -57,6 +57,10 @@ Notes:
   - `DATABASE_URL=${{Postgres.DATABASE_URL}}`
   - The app will auto-convert it to a JDBC connection at startup.
 
+Important:
+- If you set `DATABASE_URL`, do **not** also set `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` to placeholder values.
+  Those will override the credentials embedded in `DATABASE_URL`.
+
 ## 4) Deploy
 
 1. Railway will automatically kick off a build/deploy when you add variables or push commits.
