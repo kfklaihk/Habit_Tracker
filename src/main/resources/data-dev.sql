@@ -4,8 +4,11 @@
 INSERT INTO users (id, username, email)
 VALUES
     (1, 'john_dev', 'john@example.com'),
-    (2, 'jane_coder', 'jane@example.com')
-ON CONFLICT (id) DO NOTHING;
+    (2, 'jane_coder', 'jane@example.com'),
+    (3, 'sam_builder', 'sam@example.com')
+ON CONFLICT (id) DO UPDATE
+SET username = EXCLUDED.username,
+    email = EXCLUDED.email;
 
 INSERT INTO skills (id, name, category, color_hex)
 VALUES
@@ -15,53 +18,98 @@ VALUES
     (4, 'SQL', 'Database', '#00758f'),
     (5, 'Docker', 'DevOps', '#2496ed'),
     (6, 'Git', 'Tool', '#f05032'),
-    (7, 'JavaScript', 'Language', '#f1e05a')
-ON CONFLICT (id) DO NOTHING;
+    (7, 'JavaScript', 'Language', '#f1e05a'),
+    (8, 'TypeScript', 'Language', '#3178c6'),
+    (9, 'PostgreSQL', 'Database', '#336791'),
+    (10, 'Linux', 'Tool', '#333333')
+ON CONFLICT (id) DO UPDATE
+SET name = EXCLUDED.name,
+    category = EXCLUDED.category,
+    color_hex = EXCLUDED.color_hex;
 
-INSERT INTO daily_logs (id, user_id, log_date, hours_coded, focus_score, notes)
-VALUES
-    (1, 1, CURRENT_DATE - INTERVAL '12 days', 1.5, 6, 'Refactored service layer'),
-    (2, 1, CURRENT_DATE - INTERVAL '10 days', 2.0, 7, 'Worked on dashboard API'),
-    (3, 1, CURRENT_DATE - INTERVAL  '9 days', 3.0, 8, 'Practiced MyBatis queries'),
-    (4, 1, CURRENT_DATE - INTERVAL  '7 days', 2.5, 7, 'Bugfix + cleanup'),
-    (5, 1, CURRENT_DATE - INTERVAL  '6 days', 1.0, 5, 'Short session'),
-    (6, 1, CURRENT_DATE - INTERVAL  '4 days', 4.0, 9, 'Feature implementation'),
-    (7, 1, CURRENT_DATE - INTERVAL  '3 days', 2.0, 7, 'Wrote tests'),
-    (8, 1, CURRENT_DATE - INTERVAL  '1 day', 3.5, 8, 'UI polish'),
-    (9, 1, CURRENT_DATE,                 2.5, 7, 'Daily log entry'),
-    (10, 2, CURRENT_DATE - INTERVAL '5 days', 1.0, 6, 'Learning Spring'),
-    (11, 2, CURRENT_DATE - INTERVAL '2 days', 2.5, 7, 'SQL practice')
-ON CONFLICT (id) DO NOTHING;
+-- ~50 total activity days (daily logs), spread across ~12 months:
+-- User 1: 20 logs
+INSERT INTO daily_logs (user_id, log_date, hours_coded, focus_score, notes)
+SELECT
+    1,
+    (CURRENT_DATE - gs),
+    ROUND(((2 + (gs % 9))::numeric) / 2, 1),
+    5 + (gs % 6),
+    '[seed] U1 session -' || gs || 'd'
+FROM generate_series(0, 323, 17) AS gs
+ON CONFLICT (user_id, log_date) DO UPDATE
+SET hours_coded = EXCLUDED.hours_coded,
+    focus_score = EXCLUDED.focus_score,
+    notes = EXCLUDED.notes,
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO log_skills (id, daily_log_id, skill_id, minutes_practiced)
-VALUES
-    (1, 1, 1, 60),
-    (2, 1, 6, 30),
-    (3, 2, 2, 90),
-    (4, 2, 4, 30),
-    (5, 3, 3, 120),
-    (6, 3, 4, 60),
-    (7, 4, 1, 90),
-    (8, 4, 2, 60),
-    (9, 6, 2, 120),
-    (10, 6, 5, 60),
-    (11, 7, 1, 60),
-    (12, 7, 4, 30),
-    (13, 8, 7, 120),
-    (14, 8, 6, 30),
-    (15, 9, 1, 60),
-    (16, 9, 2, 60),
-    (17, 10, 2, 60),
-    (18, 11, 4, 90)
-ON CONFLICT (id) DO NOTHING;
+-- User 2: 15 logs
+INSERT INTO daily_logs (user_id, log_date, hours_coded, focus_score, notes)
+SELECT
+    2,
+    (CURRENT_DATE - gs),
+    ROUND(((3 + (gs % 8))::numeric) / 2, 1),
+    4 + (gs % 7),
+    '[seed] U2 session -' || gs || 'd'
+FROM generate_series(5, 285, 20) AS gs
+ON CONFLICT (user_id, log_date) DO UPDATE
+SET hours_coded = EXCLUDED.hours_coded,
+    focus_score = EXCLUDED.focus_score,
+    notes = EXCLUDED.notes,
+    updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO goals (id, user_id, name, description, goal_type, target_value, unit, start_date, end_date, active)
-VALUES
-    (1, 1, 'Code 10 hrs/week', 'Target: 10 hours of focused coding each week', 'WEEKLY_HOURS', 10.0, 'hours/week',
-     CURRENT_DATE - INTERVAL '4 weeks', NULL, TRUE),
-    (2, 2, 'Practice SQL 5 hrs/week', 'Improve query fluency', 'WEEKLY_HOURS', 5.0, 'hours/week',
-     CURRENT_DATE - INTERVAL '2 weeks', NULL, TRUE)
-ON CONFLICT (id) DO NOTHING;
+-- User 3: 15 logs
+INSERT INTO daily_logs (user_id, log_date, hours_coded, focus_score, notes)
+SELECT
+    3,
+    (CURRENT_DATE - gs),
+    ROUND(((2 + (gs % 10))::numeric) / 2, 1),
+    4 + (gs % 7),
+    '[seed] U3 session -' || gs || 'd'
+FROM generate_series(12, 292, 20) AS gs
+ON CONFLICT (user_id, log_date) DO UPDATE
+SET hours_coded = EXCLUDED.hours_coded,
+    focus_score = EXCLUDED.focus_score,
+    notes = EXCLUDED.notes,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- Add skill minutes for seeded logs (1 skill per log for all, plus an extra skill for ~1/3 of logs).
+INSERT INTO log_skills (daily_log_id, skill_id, minutes_practiced)
+SELECT
+    dl.id,
+    ((dl.user_id + EXTRACT(DOY FROM dl.log_date)::int) % 10) + 1,
+    GREATEST(15, LEAST(360, (dl.hours_coded * 60)::int))
+FROM daily_logs dl
+WHERE dl.notes LIKE '[seed]%'
+ON CONFLICT (daily_log_id, skill_id) DO UPDATE
+SET minutes_practiced = EXCLUDED.minutes_practiced;
+
+INSERT INTO log_skills (daily_log_id, skill_id, minutes_practiced)
+SELECT
+    dl.id,
+    (((dl.user_id + EXTRACT(DOY FROM dl.log_date)::int) % 10) + 1) % 10 + 1,
+    GREATEST(10, LEAST(180, ((dl.hours_coded * 60)::int / 2)))
+FROM daily_logs dl
+WHERE dl.notes LIKE '[seed]%'
+  AND (EXTRACT(DAY FROM dl.log_date)::int % 3) = 0
+ON CONFLICT (daily_log_id, skill_id) DO UPDATE
+SET minutes_practiced = EXCLUDED.minutes_practiced;
+
+-- Goals (MVP)
+INSERT INTO goals (user_id, name, description, goal_type, target_value, unit, start_date, end_date, active)
+SELECT 1, 'Code 10 hrs/week', 'Target: 10 hours of focused coding each week', 'WEEKLY_HOURS', 10.0, 'hours/week',
+       CURRENT_DATE - INTERVAL '12 weeks', NULL, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM goals WHERE user_id = 1 AND name = 'Code 10 hrs/week' AND active = TRUE);
+
+INSERT INTO goals (user_id, name, description, goal_type, target_value, unit, start_date, end_date, active)
+SELECT 2, 'Code 8 hrs/week', 'Target: 8 hours of coding each week', 'WEEKLY_HOURS', 8.0, 'hours/week',
+       CURRENT_DATE - INTERVAL '8 weeks', NULL, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM goals WHERE user_id = 2 AND name = 'Code 8 hrs/week' AND active = TRUE);
+
+INSERT INTO goals (user_id, name, description, goal_type, target_value, unit, start_date, end_date, active)
+SELECT 3, 'Practice SQL 6 hrs/week', 'Improve query fluency', 'WEEKLY_HOURS', 6.0, 'hours/week',
+       CURRENT_DATE - INTERVAL '8 weeks', NULL, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM goals WHERE user_id = 3 AND name = 'Practice SQL 6 hrs/week' AND active = TRUE);
 
 -- Ensure sequences are >= max(id) after seeding
 SELECT setval(pg_get_serial_sequence('users', 'id'), (SELECT COALESCE(MAX(id), 1) FROM users));

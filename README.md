@@ -57,6 +57,7 @@ export SPRING_DATASOURCE_USERNAME="postgres"
 export SPRING_DATASOURCE_PASSWORD="postgres"
 
 # Optional: load sample dev data (users/skills/logs/goals)
+# (3 sample users + ~50 seeded activity days)
 export SPRING_PROFILES_ACTIVE="dev"
 
 mvn spring-boot:run
