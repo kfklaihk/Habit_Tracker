@@ -1,21 +1,18 @@
 # Developer Habit & Productivity Tracker
 
-A lightweight web app to **log your daily coding sessions** (hours + focus + notes), **tag skills with minutes practiced**, and visualize progress with a **GitHub-style heatmap**, **streak counter**, **skills distribution**, and **weekly hours**.
-
-This repo follows **Option C** from the PDF guide: it keeps a **static Bootstrap/JS frontend** and a **REST API backend**, but implements the PDF’s *daily log + skills analytics* feature set.
+A lightweight web app to **log your daily coding sessions** (hours + focus + notes), **tag skills with minutes practiced**, and visualize with  **skills distribution**, and **monthly hours**.
 
 ## Features
 
 - **Daily log entry**: log date, hours coded, focus score, notes
 - **Skill tagging**: attach skills to a daily log with minutes practiced
-- **Contribution heatmap**: last 12 months activity intensity (hours/day)
-- **Streak tracking**: current consecutive-day coding streak
+- **Contribution Activity**: last 12 months activity log (hours/day)
 - **Charts**:
   - skills distribution (last 30 days)
   - weekly hours (last 12 weeks)
-- **Goals (MVP)**: simple “weekly hours” progress table
+- **Goals**: simple “weekly hours” progress table
 - **REST API**: CRUD for users/skills/goals + dashboard endpoints
-- **Responsive UI**: Bootstrap 5 + Cal-Heatmap + Chart.js
+- **Responsive UI**: Bootstrap 5 +  Chart.js
 
 ## Technology Stack
 
@@ -28,7 +25,6 @@ This repo follows **Option C** from the PDF guide: it keeps a **static Bootstrap
 
 ### Frontend
 - **Bootstrap 5**
-- **Cal-Heatmap 4.x** (+ D3)
 - **Chart.js 4.x**
 
 ## Prerequisites
