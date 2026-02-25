@@ -15,6 +15,19 @@ This guide deploys the app to Railway using the repo `Dockerfile` and a managed 
 
 Railway will detect the `Dockerfile` at the repo root and build a container.
 
+### If your build logs show Nixpacks (common gotcha)
+
+If your build log contains commands like `mvn ... install -Pproduction`, Railway is using **Nixpacks**, not your `Dockerfile`.
+
+Fix:
+
+- Ensure your service **Root Directory** is the repo root (so Railway can see `Dockerfile`)
+- Ensure the file is named exactly `Dockerfile` (case-sensitive)
+- If you must use a different path, set in the **app service variables**:
+  - `RAILWAY_DOCKERFILE_PATH=Dockerfile`
+
+After changing this, trigger a redeploy.
+
 ## 2) Add PostgreSQL to the project
 
 1. In the same Railway project, click **+ New**

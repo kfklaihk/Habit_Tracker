@@ -65,6 +65,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- Railway/Nixpacks sometimes builds with -Pproduction; keep it as a no-op profile -->
+    <profiles>
+        <profile>
+            <id>production</id>
+        </profile>
+    </profiles>
     
     <build>
         <plugins>
