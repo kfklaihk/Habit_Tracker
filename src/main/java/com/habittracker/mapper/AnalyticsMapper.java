@@ -69,8 +69,8 @@ public interface AnalyticsMapper {
 
     @Select("""
             SELECT
-              CAST(EXTRACT(EPOCH FROM log_date) * 1000 AS BIGINT) AS timestamp,
-              COALESCE(SUM(hours_coded), 0) AS value
+              CAST(EXTRACT(EPOCH FROM (log_date::timestamp)) * 1000 AS BIGINT) AS timestamp,
+              COALESCE(SUM(hours_coded), 0)::numeric AS value
             FROM daily_logs
             WHERE user_id = #{userId}
               AND log_date BETWEEN #{startDate} AND #{endDate}
@@ -83,8 +83,8 @@ public interface AnalyticsMapper {
 
     @Select("""
             SELECT
-              CAST(EXTRACT(EPOCH FROM log_date) * 1000 AS BIGINT) AS timestamp,
-              COALESCE(SUM(hours_coded), 0) AS value
+              CAST(EXTRACT(EPOCH FROM (log_date::timestamp)) * 1000 AS BIGINT) AS timestamp,
+              COALESCE(SUM(hours_coded), 0)::numeric AS value
             FROM daily_logs
             WHERE log_date BETWEEN #{startDate} AND #{endDate}
             GROUP BY log_date

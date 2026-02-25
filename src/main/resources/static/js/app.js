@@ -90,7 +90,7 @@ async function refreshDashboard() {
         renderGoals(dashboard.activeGoals || []);
         renderSkillsPie(dashboard.skillStats || []);
         renderMonthlyHours(dashboard.monthlyHours || []);
-        paintHeatmap();
+        await paintHeatmap();
     } catch (error) {
         console.error('Error loading dashboard:', error);
     }
@@ -216,7 +216,7 @@ function renderMonthlyHours(monthlyHours) {
     });
 }
 
-function paintHeatmap() {
+async function paintHeatmap() {
     const container = document.getElementById('cal-heatmap');
     if (!container || !currentUserId) return;
 
@@ -224,8 +224,24 @@ function paintHeatmap() {
     container.innerHTML = '';
     calHeatmap = new CalHeatmap();
 
-    const start = new Date();
+    const end = new Date();
+    const start = new Date(end);
     start.setFullYear(start.getFullYear() - 1);
+
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+
+    let activityData = [];
+    try {
+        const resp = await fetch(`${API_BASE_URL}/activity?userId=${encodeURIComponent(currentUserId)}&start=${startStr}&end=${endStr}`);
+        if (resp.ok) {
+            activityData = await resp.json();
+        } else {
+            console.error('Failed to load activity:', resp.status);
+        }
+    } catch (e) {
+        console.error('Failed to load activity:', e);
+    }
 
     calHeatmap.paint({
         itemSelector: "#cal-heatmap",
@@ -234,7 +250,7 @@ function paintHeatmap() {
         date: { start },
         range: 13,
         data: {
-            source: `${API_BASE_URL}/activity?userId=${currentUserId}&start={{start=YYYY-MM-DD}}&end={{end=YYYY-MM-DD}}`,
+            source: activityData,
             x: 'timestamp',
             y: (d) => +d['value'],
             groupY: 'sum'
