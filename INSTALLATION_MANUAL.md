@@ -1,7 +1,7 @@
 # Java and Maven Setup Guide for Windows
 
 ## Current Status
-✓ **Java 17 is installed**: `C:\Program Files\Java\jdk-25.0.2`
+✓ **Java 21+ is installed**: `C:\Program Files\Java\jdk-25.0.2`
 ✗ **Maven is NOT installed**: Needs to be downloaded and extracted
 
 ---

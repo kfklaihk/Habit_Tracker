@@ -17,8 +17,8 @@ A full-stack web application for tracking developer habits with visual analytics
 ## Technology Stack
 
 ### Backend
-- **Spring Boot 3.2.2** - Web framework
-- **Java 17** - Programming language
+- **Spring Boot 3.4.3** - Web framework
+- **Java 21** - Programming language
 - **MyBatis 3.0.3** - SQL mapper framework
 - **H2 Database** - In-memory database (development)
 - **PostgreSQL** - Production database support
