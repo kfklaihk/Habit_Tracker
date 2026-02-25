@@ -1,17 +1,13 @@
 package com.habittracker.controller;
 
-import com.habittracker.domain.DailyLog;
 import com.habittracker.dto.ActivityPoint;
-import com.habittracker.service.DailyLogService;
+import com.habittracker.mapper.AnalyticsMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -20,27 +16,22 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ActivityController {
 
-    private final DailyLogService dailyLogService;
+    private final AnalyticsMapper analyticsMapper;
 
     @GetMapping
     public ResponseEntity<List<ActivityPoint>> getActivity(
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
     ) {
-        List<DailyLog> logs = dailyLogService.getDailyLogs(userId, start, end);
-        List<ActivityPoint> points = new ArrayList<>();
-        for (DailyLog log : logs) {
-            if (log.getLogDate() == null || log.getHoursCoded() == null) {
-                continue;
-            }
-            ActivityPoint p = new ActivityPoint();
-            p.setTimestamp(log.getLogDate().atStartOfDay(ZoneOffset.UTC).toEpochSecond());
-            p.setValue(log.getHoursCoded());
-            points.add(p);
+        if (isAllUsers(userId)) {
+            return ResponseEntity.ok(analyticsMapper.getDailyActivityAllUsers(start, end));
         }
-        points.sort(Comparator.comparing(ActivityPoint::getTimestamp));
-        return ResponseEntity.ok(points);
+        return ResponseEntity.ok(analyticsMapper.getDailyActivity(Long.parseLong(userId), start, end));
+    }
+
+    private boolean isAllUsers(String userId) {
+        return userId == null || userId.isBlank() || "ALL".equalsIgnoreCase(userId);
     }
 }
 

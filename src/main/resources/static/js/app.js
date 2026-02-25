@@ -2,12 +2,13 @@ const API_BASE_URL = window.location.origin + '/api';
 let currentUserId = null;
 let calHeatmap = null;
 let skillsPieChart = null;
-let weeklyBarChart = null;
+let monthlyBarChart = null;
 let allSkills = [];
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
     setDefaultDailyLogFormValues();
+    setTodayLabel();
     loadUsers();
 });
 
@@ -23,6 +24,12 @@ function setDefaultDailyLogFormValues() {
     }
 }
 
+function setTodayLabel() {
+    const el = document.getElementById('todayDate');
+    if (!el) return;
+    el.textContent = `(${new Date().toISOString().split('T')[0]})`;
+}
+
 // Load all users for selection
 async function loadUsers() {
     try {
@@ -31,6 +38,11 @@ async function loadUsers() {
         
         const userSelect = document.getElementById('userSelect');
         userSelect.innerHTML = '<option value="">Select a user...</option>';
+
+        const allOption = document.createElement('option');
+        allOption.value = 'ALL';
+        allOption.textContent = 'All users';
+        userSelect.appendChild(allOption);
         
         users.forEach(user => {
             const option = document.createElement('option');
@@ -57,6 +69,12 @@ function onUserChange() {
         return;
     }
 
+    const isAll = currentUserId === 'ALL';
+    const logBtn = document.getElementById('logTodayBtn');
+    const hint = document.getElementById('allUsersHint');
+    if (logBtn) logBtn.disabled = isAll;
+    if (hint) hint.style.display = isAll ? 'block' : 'none';
+
     refreshDashboard();
     loadSkills();
 }
@@ -67,12 +85,11 @@ async function refreshDashboard() {
         const response = await fetch(`${API_BASE_URL}/dashboard?userId=${currentUserId}`);
         const dashboard = await response.json();
 
-        document.getElementById('currentStreak').textContent = dashboard.currentStreak ?? 0;
         document.getElementById('totalDaysLogged').textContent = dashboard.totalDaysLogged ?? 0;
 
         renderGoals(dashboard.activeGoals || []);
         renderSkillsPie(dashboard.skillStats || []);
-        renderWeeklyHours(dashboard.weeklyHours || []);
+        renderMonthlyHours(dashboard.monthlyHours || []);
         paintHeatmap();
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -156,26 +173,28 @@ function renderSkillsPie(skillStats) {
     });
 }
 
-function renderWeeklyHours(weeklyHours) {
-    const hint = document.getElementById('weeklyEmptyHint');
-    const canvas = document.getElementById('weeklyBarChart');
+function renderMonthlyHours(monthlyHours) {
+    const hint = document.getElementById('monthlyEmptyHint');
+    const canvas = document.getElementById('monthlyBarChart');
     if (!canvas) return;
 
-    if (weeklyBarChart) {
-        weeklyBarChart.destroy();
-        weeklyBarChart = null;
+    if (monthlyBarChart) {
+        monthlyBarChart.destroy();
+        monthlyBarChart = null;
     }
 
-    if (!weeklyHours || weeklyHours.length === 0) {
+    if (!monthlyHours || monthlyHours.length === 0) {
         if (hint) hint.style.display = 'block';
         return;
     }
     if (hint) hint.style.display = 'none';
 
-    const labels = weeklyHours.map(w => w.weekLabel);
-    const data = weeklyHours.map(w => Number(w.totalHours || 0));
+    const wantedLabels = getLast12MonthLabels();
+    const byLabel = new Map((monthlyHours || []).map(m => [m.monthLabel, Number(m.totalHours || 0)]));
+    const labels = wantedLabels;
+    const data = wantedLabels.map(l => byLabel.get(l) ?? 0);
 
-    weeklyBarChart = new Chart(canvas, {
+    monthlyBarChart = new Chart(canvas, {
         type: 'bar',
         data: {
             labels,
@@ -302,6 +321,10 @@ async function submitDailyLog() {
 
     if (!currentUserId) {
         showDailyLogError('Select a user first.');
+        return;
+    }
+    if (currentUserId === 'ALL') {
+        showDailyLogError('Select a specific user (not "All users") to save a daily log.');
         return;
     }
 
@@ -454,4 +477,18 @@ function escapeHtml(str) {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
+}
+
+function getLast12MonthLabels() {
+    const labels = [];
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 11);
+    for (let i = 0; i < 12; i++) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        labels.push(`${y}-${m}`);
+        d.setMonth(d.getMonth() + 1);
+    }
+    return labels;
 }

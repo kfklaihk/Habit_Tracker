@@ -3,6 +3,7 @@ package com.habittracker.mapper;
 import com.habittracker.domain.DailyLog;
 import org.apache.ibatis.annotations.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -34,5 +35,21 @@ public interface DailyLogMapper {
 
     @Select("SELECT COUNT(*) FROM daily_logs WHERE user_id = #{userId}")
     int countByUserId(Long userId);
+
+    @Select("SELECT COUNT(*) FROM daily_logs")
+    int countAll();
+
+    @Select("SELECT COALESCE(SUM(hours_coded), 0) FROM daily_logs WHERE user_id = #{userId} AND log_date BETWEEN #{startDate} AND #{endDate}")
+    BigDecimal sumHoursByUserIdAndDateRange(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Select("SELECT COALESCE(SUM(hours_coded), 0) FROM daily_logs WHERE log_date BETWEEN #{startDate} AND #{endDate}")
+    BigDecimal sumHoursAllUsersByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
 

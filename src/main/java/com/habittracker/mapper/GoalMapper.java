@@ -3,6 +3,7 @@ package com.habittracker.mapper;
 import com.habittracker.domain.Goal;
 import org.apache.ibatis.annotations.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,9 @@ public interface GoalMapper {
 
     @Select("SELECT * FROM goals WHERE user_id = #{userId} ORDER BY created_at DESC")
     List<Goal> findByUserId(Long userId);
+
+    @Select("SELECT COALESCE(SUM(target_value), 0) FROM goals WHERE active = TRUE AND UPPER(goal_type) = UPPER(#{goalType})")
+    BigDecimal sumActiveTargetsAllUsersByGoalType(@Param("goalType") String goalType);
 
     @Insert("INSERT INTO goals (user_id, name, description, goal_type, target_value, unit, start_date, end_date, active, created_at, updated_at) " +
             "VALUES (#{userId}, #{name}, #{description}, #{goalType}, #{targetValue}, #{unit}, #{startDate}, #{endDate}, #{active}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)")

@@ -23,34 +23,25 @@
 
     <div class="container mt-4">
         <!-- Stat cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted mb-1">Current Streak</h6>
-                        <div class="streak-badge"><span id="currentStreak">0</span> <span class="streak-unit">days</span></div>
-                    </div>
+        <div class="card-scroll-row mb-4">
+            <div class="card stat-card card-minw">
+                <div class="card-body">
+                    <h6 class="text-muted mb-1">Total Days Logged</h6>
+                    <div class="streak-badge"><span id="totalDaysLogged">0</span></div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted mb-1">Total Days Logged</h6>
-                        <div class="streak-badge"><span id="totalDaysLogged">0</span></div>
+            <div class="card stat-card card-minw">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Today <span id="todayDate" class="small text-muted"></span></h6>
+                    <button id="logTodayBtn" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#dailyLogModal">
+                        + Log Today
+                    </button>
+                    <div id="allUsersHint" class="text-muted small mt-2" style="display:none;">
+                        Select a specific user to add a daily log.
                     </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted mb-2">Today</h6>
-                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#dailyLogModal">
-                            + Log Today
-                        </button>
-                        <button class="btn btn-outline-light w-100 mt-2" data-bs-toggle="modal" data-bs-target="#manageSkillsModal">
-                            Manage Skills
-                        </button>
-                    </div>
+                    <button class="btn btn-outline-light w-100 mt-2" data-bs-toggle="modal" data-bs-target="#manageSkillsModal">
+                        Manage Skills
+                    </button>
                 </div>
             </div>
         </div>
@@ -59,7 +50,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">Active Goals (MVP)</h5>
+                    <h5 class="card-title mb-0">Active Goals</h5>
                     <button class="btn btn-sm btn-outline-secondary" onclick="refreshDashboard()">Refresh</button>
                 </div>
                 <div class="table-responsive">
@@ -105,10 +96,10 @@
             <div class="col-md-7">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Weekly Hours (Last 12 Weeks)</h5>
-                        <canvas id="weeklyBarChart"></canvas>
-                        <div class="text-muted small mt-2" id="weeklyEmptyHint" style="display:none;">
-                            No weekly hours yet.
+                        <h5 class="card-title">Monthly Hours (Last 12 Months)</h5>
+                        <canvas id="monthlyBarChart"></canvas>
+                        <div class="text-muted small mt-2" id="monthlyEmptyHint" style="display:none;">
+                            No monthly hours yet.
                         </div>
                     </div>
                 </div>

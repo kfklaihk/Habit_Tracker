@@ -15,8 +15,11 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping
-    public ResponseEntity<DashboardResponse> getDashboard(@RequestParam Long userId) {
-        return ResponseEntity.ok(dashboardService.getDashboard(userId));
+    public ResponseEntity<DashboardResponse> getDashboard(@RequestParam String userId) {
+        if (userId == null || userId.isBlank() || "ALL".equalsIgnoreCase(userId)) {
+            return ResponseEntity.ok(dashboardService.getDashboardAllUsers());
+        }
+        return ResponseEntity.ok(dashboardService.getDashboardForUser(Long.parseLong(userId)));
     }
 }
 

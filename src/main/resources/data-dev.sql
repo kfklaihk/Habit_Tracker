@@ -35,7 +35,15 @@ SELECT
     (CURRENT_DATE - gs),
     ROUND(((2 + (gs % 9))::numeric) / 2, 1),
     5 + (gs % 6),
-    '[seed] U1 session -' || gs || 'd'
+    '[seed] ' ||
+    CASE (gs % 6)
+      WHEN 0 THEN 'Built dashboard analytics + activity heatmap'
+      WHEN 1 THEN 'Refactored MyBatis mappers and cleaned up queries'
+      WHEN 2 THEN 'Improved UI layout, charts, and responsiveness'
+      WHEN 3 THEN 'Debugged deployment configuration and database connectivity'
+      WHEN 4 THEN 'Practiced PostgreSQL aggregations and indexing'
+      ELSE 'Reviewed code and wrote tests'
+    END
 FROM generate_series(0, 323, 17) AS gs
 ON CONFLICT (user_id, log_date) DO UPDATE
 SET hours_coded = EXCLUDED.hours_coded,
@@ -50,7 +58,15 @@ SELECT
     (CURRENT_DATE - gs),
     ROUND(((3 + (gs % 8))::numeric) / 2, 1),
     4 + (gs % 7),
-    '[seed] U2 session -' || gs || 'd'
+    '[seed] ' ||
+    CASE (gs % 6)
+      WHEN 0 THEN 'Worked through Spring Boot API wiring'
+      WHEN 1 THEN 'Practiced SQL joins and group-by reporting'
+      WHEN 2 THEN 'Implemented skill tagging with minutes practiced'
+      WHEN 3 THEN 'Polished charts and labels for readability'
+      WHEN 4 THEN 'Debugged edge cases (empty months, no skills logged)'
+      ELSE 'Cleaned up code style and naming'
+    END
 FROM generate_series(5, 285, 20) AS gs
 ON CONFLICT (user_id, log_date) DO UPDATE
 SET hours_coded = EXCLUDED.hours_coded,
@@ -65,7 +81,15 @@ SELECT
     (CURRENT_DATE - gs),
     ROUND(((2 + (gs % 10))::numeric) / 2, 1),
     4 + (gs % 7),
-    '[seed] U3 session -' || gs || 'd'
+    '[seed] ' ||
+    CASE (gs % 6)
+      WHEN 0 THEN 'Dockerized the app and tested Railway deploy'
+      WHEN 1 THEN 'Focused coding sprint on backend services'
+      WHEN 2 THEN 'Added more realistic seed data for demos'
+      WHEN 3 THEN 'Reviewed goal tracking and progress calculations'
+      WHEN 4 THEN 'Practiced TypeScript and frontend tooling'
+      ELSE 'Triage + bugfix session'
+    END
 FROM generate_series(12, 292, 20) AS gs
 ON CONFLICT (user_id, log_date) DO UPDATE
 SET hours_coded = EXCLUDED.hours_coded,

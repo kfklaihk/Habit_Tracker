@@ -11,14 +11,14 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WeeklyHours {
-    private String weekLabel;
+public class MonthlyHours {
+    private String monthLabel; // YYYY-MM
     private BigDecimal totalHours;
 
-    public String getWeekLabel() { return weekLabel; }
+    public String getMonthLabel() { return monthLabel; }
     public BigDecimal getTotalHours() { return totalHours; }
 
-    public void setWeekLabel(String weekLabel) { this.weekLabel = weekLabel; }
+    public void setMonthLabel(String monthLabel) { this.monthLabel = monthLabel; }
     public void setTotalHours(BigDecimal totalHours) { this.totalHours = totalHours; }
 }
 
