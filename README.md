@@ -14,7 +14,7 @@ A lightweight web app to **log your daily coding sessions** (hours + focus + not
 - **Contribution Activity**: last 12 months activity log (hours/day)
 - **Charts**:
   - skills distribution (last 30 days)
-  - weekly hours (last 12 weeks)
+  - monthly hours (last 12 months)
 - **Goals**: simple “weekly hours” progress table
 - **REST API**: CRUD for users/skills/goals + dashboard endpoints
 - **Responsive UI**: Bootstrap 5 +  Chart.js
