@@ -15,18 +15,6 @@ body {
     font-size: 1.3rem;
 }
 
-.habit-card {
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.habit-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 .card {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -42,41 +30,53 @@ body {
     padding: 0.4em 0.8em;
 }
 
-#cal-heatmap {
-    margin: 20px 0;
+.stat-card {
+    border-left: 4px solid var(--primary-color);
 }
 
-#progressChart {
-    max-height: 300px;
+.card-scroll-row {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
 }
 
-/* Cal-Heatmap customization */
-.cal-heatmap-container {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.card-minw {
+    min-width: 280px;
+    flex: 0 0 auto;
 }
 
-.cal-heatmap-container .graph-label {
-    fill: #333;
-    font-size: 12px;
+.streak-badge {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fd7e14;
+    line-height: 1.1;
 }
 
-.cal-heatmap-container rect {
-    cursor: pointer;
+.streak-unit {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6c757d;
 }
 
-.cal-heatmap-container rect.q1 {
-    fill: #e0e0e0;
+.skill-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    display: inline-block;
 }
 
-.cal-heatmap-container rect.q2 {
-    fill: #4CAF50;
+.skill-minutes-list {
+    max-height: 240px;
+    overflow: auto;
+}
+
+.activity-feed {
+    max-height: 420px;
+    overflow: auto;
 }
 
 /* Modal customizations */
-.modal-xl {
-    max-width: 1200px;
-}
-
 .modal-header {
     background-color: var(--primary-color);
     color: white;
@@ -86,18 +86,8 @@ body {
     filter: brightness(0) invert(1);
 }
 
-/* Stats badges */
-#habitStats .badge {
-    font-size: 1rem;
-    padding: 0.5em 1em;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .habit-card {
-        margin-bottom: 15px;
-    }
-    
     #cal-heatmap {
         overflow-x: auto;
     }

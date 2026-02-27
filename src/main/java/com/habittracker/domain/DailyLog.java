@@ -5,43 +5,40 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Habit {
+public class DailyLog {
     private Long id;
     private Long userId;
-    private String name;
-    private String description;
-    private String color;
-    private TargetFrequency targetFrequency;
+    private LocalDate logDate;
+    private BigDecimal hoursCoded;
+    private Integer focusScore;
+    private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
-    // Explicit getters
+
     public Long getId() { return id; }
     public Long getUserId() { return userId; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public String getColor() { return color; }
-    public TargetFrequency getTargetFrequency() { return targetFrequency; }
+    public LocalDate getLogDate() { return logDate; }
+    public BigDecimal getHoursCoded() { return hoursCoded; }
+    public Integer getFocusScore() { return focusScore; }
+    public String getNotes() { return notes; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    
-    // Explicit setters
+
     public void setId(Long id) { this.id = id; }
     public void setUserId(Long userId) { this.userId = userId; }
-    public void setName(String name) { this.name = name; }
-    public void setDescription(String description) { this.description = description; }
-    public void setColor(String color) { this.color = color; }
-    public void setTargetFrequency(TargetFrequency targetFrequency) { this.targetFrequency = targetFrequency; }
+    public void setLogDate(LocalDate logDate) { this.logDate = logDate; }
+    public void setHoursCoded(BigDecimal hoursCoded) { this.hoursCoded = hoursCoded; }
+    public void setFocusScore(Integer focusScore) { this.focusScore = focusScore; }
+    public void setNotes(String notes) { this.notes = notes; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
-    public enum TargetFrequency {
-        DAILY, WEEKLY, MONTHLY
-    }
 }
+

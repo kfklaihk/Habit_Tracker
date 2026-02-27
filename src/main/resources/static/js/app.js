@@ -1,15 +1,35 @@
 const API_BASE_URL = window.location.origin + '/api';
 let currentUserId = null;
-let currentHabitId = null;
-let calHeatmap = null;
-let progressChart = null;
+let skillsPieChart = null;
+let monthlyBarChart = null;
+let allSkills = [];
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
+    setDefaultDailyLogFormValues();
+    setTodayLabel();
     loadUsers();
 });
 
-// Load all users
+function setDefaultDailyLogFormValues() {
+    const logDate = document.getElementById('logDate');
+    if (logDate) {
+        logDate.value = new Date().toISOString().split('T')[0];
+    }
+    const focusValue = document.getElementById('focusValue');
+    const focusScore = document.getElementById('focusScore');
+    if (focusValue && focusScore) {
+        focusValue.textContent = focusScore.value;
+    }
+}
+
+function setTodayLabel() {
+    const el = document.getElementById('todayDate');
+    if (!el) return;
+    el.textContent = `(${new Date().toISOString().split('T')[0]})`;
+}
+
+// Load all users for selection
 async function loadUsers() {
     try {
         const response = await fetch(`${API_BASE_URL}/users`);
@@ -17,6 +37,11 @@ async function loadUsers() {
         
         const userSelect = document.getElementById('userSelect');
         userSelect.innerHTML = '<option value="">Select a user...</option>';
+
+        const allOption = document.createElement('option');
+        allOption.value = 'ALL';
+        allOption.textContent = 'All users';
+        userSelect.appendChild(allOption);
         
         users.forEach(user => {
             const option = document.createElement('option');
@@ -28,281 +53,118 @@ async function loadUsers() {
         // Auto-select first user if available
         if (users.length > 0) {
             userSelect.value = users[0].id;
-            loadUserHabits();
+            onUserChange();
         }
     } catch (error) {
         console.error('Error loading users:', error);
     }
 }
 
-// Load habits for selected user
-async function loadUserHabits() {
+function onUserChange() {
     const userSelect = document.getElementById('userSelect');
     currentUserId = userSelect.value;
     
     if (!currentUserId) {
-        document.getElementById('habitsContainer').innerHTML = 
-            '<div class="col-12 text-center text-muted"><p>Select a user to view habits</p></div>';
         return;
     }
-    
-    document.getElementById('current-user').textContent = 
-        userSelect.options[userSelect.selectedIndex].text;
-    
+
+    const isAll = currentUserId === 'ALL';
+    const logBtn = document.getElementById('logTodayBtn');
+    const hint = document.getElementById('allUsersHint');
+    if (logBtn) logBtn.disabled = isAll;
+    if (hint) hint.style.display = isAll ? 'block' : 'none';
+
+    refreshDashboard();
+    loadSkills();
+}
+
+async function refreshDashboard() {
+    if (!currentUserId) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/habits/user/${currentUserId}`);
-        const habits = await response.json();
-        
-        displayHabits(habits);
-        updateQuickStats(habits);
+        const response = await fetch(`${API_BASE_URL}/dashboard?userId=${currentUserId}`);
+        const dashboard = await response.json();
+
+        document.getElementById('totalDaysLogged').textContent = dashboard.totalDaysLogged ?? 0;
+
+        renderGoals(dashboard.activeGoals || []);
+        renderSkillsPie(dashboard.skillStats || []);
+        renderMonthlyHours(dashboard.monthlyHours || []);
+        await loadActivityFeed();
     } catch (error) {
-        console.error('Error loading habits:', error);
+        console.error('Error loading dashboard:', error);
     }
 }
 
-// Display habits as cards
-function displayHabits(habits) {
-    const container = document.getElementById('habitsContainer');
-    
-    if (habits.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center text-muted"><p>No habits yet. Add your first habit!</p></div>';
+function renderGoals(goals) {
+    const body = document.getElementById('goalsTableBody');
+    if (!body) return;
+    if (!goals || goals.length === 0) {
+        body.innerHTML = '<tr><td colspan="3" class="text-muted">No active goals.</td></tr>';
         return;
     }
-    
-    container.innerHTML = '';
-    
-    habits.forEach(habit => {
-        const col = document.createElement('div');
-        col.className = 'col-md-6 col-lg-4 mb-3';
-        col.innerHTML = `
-            <div class="card habit-card h-100" style="border-left: 4px solid ${habit.color}" onclick="showHabitDetail(${habit.id})">
-                <div class="card-body">
-                    <h5 class="card-title">${habit.name}</h5>
-                    <p class="card-text text-muted small">${habit.description || 'No description'}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-secondary">${habit.targetFrequency}</span>
-                        <button class="btn btn-sm btn-success" onclick="event.stopPropagation(); quickLog(${habit.id})">
-                            ✓ Log Today
-                        </button>
-                    </div>
-                </div>
-            </div>
+
+    body.innerHTML = '';
+    goals.forEach(g => {
+        const progress = (g.progressValue ?? null);
+        const target = (g.targetValue ?? null);
+        const unit = g.unit || '';
+
+        const progressText = progress !== null ? `${progress}` : '—';
+        const targetText = target !== null ? `${target}` : '—';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="fw-semibold">${escapeHtml(g.name || 'Goal')}</div>
+            <div class="text-muted small">${escapeHtml(g.goalType || '')}</div>
+          </td>
+          <td class="text-end">${escapeHtml(progressText)} <span class="text-muted small">${escapeHtml(unit)}</span></td>
+          <td class="text-end">${escapeHtml(targetText)} <span class="text-muted small">${escapeHtml(unit)}</span></td>
         `;
-        container.appendChild(col);
+        body.appendChild(tr);
     });
 }
 
-// Update quick stats
-async function updateQuickStats(habits) {
-    document.getElementById('totalHabits').textContent = habits.length;
-    
-    let activeStreaks = 0;
-    for (const habit of habits) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/habits/${habit.id}/stats?days=7`);
-            const stats = await response.json();
-            if (stats.currentStreak > 0) {
-                activeStreaks++;
-            }
-        } catch (error) {
-            console.error('Error loading stats:', error);
-        }
-    }
-    
-    document.getElementById('activeStreaks').textContent = activeStreaks;
-}
+function renderSkillsPie(skillStats) {
+    const hint = document.getElementById('skillsEmptyHint');
+    const canvas = document.getElementById('skillsPieChart');
+    if (!canvas) return;
 
-// Add new habit
-async function addHabit() {
-    const name = document.getElementById('habitName').value;
-    const description = document.getElementById('habitDescription').value;
-    const color = document.getElementById('habitColor').value;
-    const frequency = document.getElementById('habitFrequency').value;
-    
-    if (!name || !currentUserId) {
-        alert('Please fill in the habit name and select a user');
+    if (skillsPieChart) {
+        skillsPieChart.destroy();
+        skillsPieChart = null;
+    }
+
+    if (!skillStats || skillStats.length === 0) {
+        if (hint) hint.style.display = 'block';
         return;
     }
-    
-    const habit = {
-        userId: parseInt(currentUserId),
-        name: name,
-        description: description,
-        color: color,
-        targetFrequency: frequency
-    };
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/habits`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(habit)
-        });
-        
-        if (response.ok) {
-            // Close modal
-            bootstrap.Modal.getInstance(document.getElementById('addHabitModal')).hide();
-            
-            // Reset form
-            document.getElementById('addHabitForm').reset();
-            
-            // Reload habits
-            loadUserHabits();
-        }
-    } catch (error) {
-        console.error('Error adding habit:', error);
-        alert('Error adding habit');
-    }
-}
+    if (hint) hint.style.display = 'none';
 
-// Quick log habit for today
-async function quickLog(habitId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/habits/${habitId}/log`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                date: new Date().toISOString().split('T')[0],
-                completed: true
-            })
-        });
-        
-        if (response.ok) {
-            alert('Logged successfully!');
-            loadUserHabits();
-        }
-    } catch (error) {
-        console.error('Error logging habit:', error);
-        alert('Error logging habit');
-    }
-}
+    const labels = skillStats.map(s => s.skillName);
+    const data = skillStats.map(s => s.totalMinutes);
+    const colors = skillStats.map(s => s.color || '#6c757d');
 
-// Show habit detail modal
-async function showHabitDetail(habitId) {
-    currentHabitId = habitId;
-    
-    try {
-        // Load habit details
-        const habitResponse = await fetch(`${API_BASE_URL}/habits/${habitId}`);
-        const habit = await habitResponse.json();
-        
-        // Load habit stats
-        const statsResponse = await fetch(`${API_BASE_URL}/habits/${habitId}/stats?days=90`);
-        const stats = await statsResponse.json();
-        
-        // Update modal title
-        document.getElementById('habitDetailTitle').textContent = habit.name;
-        
-        // Update stats
-        document.getElementById('currentStreak').textContent = `${stats.currentStreak} days`;
-        document.getElementById('longestStreak').textContent = `${stats.longestStreak} days`;
-        document.getElementById('totalCompletions').textContent = stats.totalCompletions;
-        document.getElementById('completionRate').textContent = `${stats.completionRate}%`;
-        
-        // Initialize Cal-Heatmap
-        initializeCalHeatmap(stats.heatmapData);
-        
-        // Initialize Chart.js
-        initializeProgressChart(stats.heatmapData);
-        
-        // Show modal
-        new bootstrap.Modal(document.getElementById('habitDetailModal')).show();
-    } catch (error) {
-        console.error('Error loading habit details:', error);
-    }
-}
-
-// Initialize Cal-Heatmap
-function initializeCalHeatmap(heatmapData) {
-    // Clear previous instance
-    document.getElementById('cal-heatmap').innerHTML = '';
-    
-    // Prepare data for Cal-Heatmap
-    const data = heatmapData.map(item => ({
-        date: item.date,
-        value: item.value
-    }));
-    
-    // Initialize Cal-Heatmap v4
-    calHeatmap = new CalHeatmap();
-    calHeatmap.paint({
-        itemSelector: '#cal-heatmap',
-        domain: {
-            type: 'month',
-            gutter: 8,
-            label: { text: 'MMM', position: 'top', align: 'start' }
-        },
-        subDomain: { 
-            type: 'day',
-            width: 15,
-            height: 15,
-            radius: 2
-        },
+    skillsPieChart = new Chart(canvas, {
+        type: 'doughnut',
         data: {
-            source: data,
-            x: 'date',
-            y: 'value'
-        },
-        scale: {
-            color: {
-                type: 'threshold',
-                range: ['#ebedf0', '#39d353'],
-                domain: [1]
-            }
-        },
-        range: 3,
-        date: { start: new Date(new Date().setMonth(new Date().getMonth() - 2)) }
-    });
-}
-
-// Initialize Progress Chart
-function initializeProgressChart(heatmapData) {
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    
-    // Destroy previous chart if exists
-    if (progressChart) {
-        progressChart.destroy();
-    }
-    
-    // Prepare data for Chart.js
-    const last30Days = heatmapData.slice(-30);
-    const labels = last30Days.map(item => {
-        const date = new Date(item.date);
-        return `${date.getMonth() + 1}/${date.getDate()}`;
-    });
-    const data = last30Days.map(item => item.value);
-    
-    progressChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
+            labels,
             datasets: [{
-                label: 'Completions',
-                data: data,
-                borderColor: '#4CAF50',
-                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                tension: 0.4,
-                fill: true
+                data,
+                backgroundColor: colors,
+                hoverOffset: 4
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: true,
             plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 1,
-                    ticks: {
-                        stepSize: 1
+                legend: { position: 'right' },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const mins = Number(ctx.raw || 0);
+                            const hrs = Math.round((mins / 60) * 10) / 10;
+                            return ` ${mins} min (${hrs} hrs)`;
+                        }
                     }
                 }
             }
@@ -310,29 +172,342 @@ function initializeProgressChart(heatmapData) {
     });
 }
 
-// Log today
-async function logToday() {
-    await quickLog(currentHabitId);
-    showHabitDetail(currentHabitId);
-}
+function renderMonthlyHours(monthlyHours) {
+    const hint = document.getElementById('monthlyEmptyHint');
+    const canvas = document.getElementById('monthlyBarChart');
+    if (!canvas) return;
 
-// Delete habit
-async function deleteHabit() {
-    if (!confirm('Are you sure you want to delete this habit? This action cannot be undone.')) {
+    if (monthlyBarChart) {
+        monthlyBarChart.destroy();
+        monthlyBarChart = null;
+    }
+
+    if (!monthlyHours || monthlyHours.length === 0) {
+        if (hint) hint.style.display = 'block';
         return;
     }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/habits/${currentHabitId}`, {
-            method: 'DELETE'
-        });
-        
-        if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('habitDetailModal')).hide();
-            loadUserHabits();
+    if (hint) hint.style.display = 'none';
+
+    const wantedLabels = getLast12MonthLabels();
+    const byLabel = new Map((monthlyHours || []).map(m => [m.monthLabel, Number(m.totalHours || 0)]));
+    const labels = wantedLabels;
+    const data = wantedLabels.map(l => byLabel.get(l) ?? 0);
+
+    monthlyBarChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Hours coded',
+                data,
+                backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Hours' } }
+            },
+            plugins: { legend: { display: false } }
         }
-    } catch (error) {
-        console.error('Error deleting habit:', error);
-        alert('Error deleting habit');
+    });
+}
+
+async function loadActivityFeed() {
+    const container = document.getElementById('activityFeed');
+    if (!container || !currentUserId) return;
+
+    container.textContent = 'Loading…';
+    try {
+        const resp = await fetch(`${API_BASE_URL}/daily-logs/recent?userId=${encodeURIComponent(currentUserId)}&limit=50`);
+        if (!resp.ok) {
+            container.textContent = 'Failed to load activity.';
+            return;
+        }
+        const items = await resp.json();
+        renderActivityFeed(items);
+    } catch (e) {
+        console.error(e);
+        container.textContent = 'Failed to load activity.';
     }
+}
+
+function renderActivityFeed(items) {
+    const container = document.getElementById('activityFeed');
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="text-muted">No daily logs yet.</div>';
+        return;
+    }
+
+    const showUser = currentUserId === 'ALL';
+    const rows = items.map(it => {
+        const date = escapeHtml(it.logDate || '');
+        const hours = it.hoursCoded !== null && it.hoursCoded !== undefined ? escapeHtml(it.hoursCoded) : '—';
+        const focus = it.focusScore !== null && it.focusScore !== undefined ? escapeHtml(it.focusScore) : '—';
+        const notes = escapeHtml(it.notes || '');
+        const user = escapeHtml(it.username || `User ${it.userId || ''}`);
+
+        return `
+          <div class="py-2 border-bottom">
+            <div class="d-flex justify-content-between gap-3">
+              <div class="fw-semibold">${date}${showUser ? ` <span class="text-muted">· ${user}</span>` : ''}</div>
+              <div class="text-nowrap">
+                <span class="badge bg-primary-subtle text-primary-emphasis">Hours: ${hours}</span>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1">Focus: ${focus}</span>
+              </div>
+            </div>
+            ${notes ? `<div class="text-muted mt-1">${notes}</div>` : ''}
+          </div>
+        `;
+    }).join('');
+
+    container.innerHTML = rows;
+}
+
+async function loadSkills() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/skills`);
+        allSkills = await response.json();
+        renderSkillMinutesInputs();
+        renderSkillsList();
+    } catch (error) {
+        console.error('Error loading skills:', error);
+    }
+}
+
+function renderSkillMinutesInputs() {
+    const container = document.getElementById('skillMinutesList');
+    if (!container) return;
+
+    if (!allSkills || allSkills.length === 0) {
+        container.innerHTML = '<div class="text-muted">No skills yet. Add skills first in “Manage Skills”.</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    allSkills.forEach(skill => {
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center justify-content-between gap-3 py-1';
+        row.innerHTML = `
+          <div class="d-flex align-items-center gap-2">
+            <span class="skill-dot" style="background:${skill.colorHex || '#6c757d'}"></span>
+            <span class="fw-semibold">${escapeHtml(skill.name)}</span>
+            <span class="text-muted small">${escapeHtml(skill.category || '')}</span>
+          </div>
+          <div style="width: 140px;">
+            <input type="number" class="form-control form-control-sm" min="0" step="5"
+                   placeholder="0" id="skill_minutes_${skill.id}">
+          </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function renderSkillsList() {
+    const container = document.getElementById('skillsList');
+    if (!container) return;
+    if (!allSkills || allSkills.length === 0) {
+        container.innerHTML = '<div class="text-muted">No skills yet.</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    allSkills.forEach(skill => {
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center justify-content-between py-1';
+        row.innerHTML = `
+          <div class="d-flex align-items-center gap-2">
+            <span class="skill-dot" style="background:${skill.colorHex || '#6c757d'}"></span>
+            <span class="fw-semibold">${escapeHtml(skill.name)}</span>
+            <span class="text-muted small">${escapeHtml(skill.category || '')}</span>
+          </div>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteSkill(${skill.id})">Delete</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+async function submitDailyLog() {
+    const errorEl = document.getElementById('dailyLogError');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+    }
+
+    if (!currentUserId) {
+        showDailyLogError('Select a user first.');
+        return;
+    }
+    if (currentUserId === 'ALL') {
+        showDailyLogError('Select a specific user (not "All users") to save a daily log.');
+        return;
+    }
+
+    const logDate = document.getElementById('logDate').value;
+    const hoursCoded = document.getElementById('hoursCoded').value;
+    const focusScore = document.getElementById('focusScore').value;
+    const notes = document.getElementById('notes').value;
+
+    const skills = [];
+    (allSkills || []).forEach(skill => {
+        const input = document.getElementById(`skill_minutes_${skill.id}`);
+        if (!input) return;
+        const minutes = parseInt(input.value || '0', 10);
+        if (minutes > 0) {
+            skills.push({ skillId: skill.id, minutesPracticed: minutes });
+        }
+    });
+
+    const payload = {
+        userId: parseInt(currentUserId, 10),
+        logDate,
+        hoursCoded: Number(hoursCoded),
+        focusScore: focusScore ? parseInt(focusScore, 10) : null,
+        notes,
+        skills
+    };
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/daily-logs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const msg = await safeReadError(resp);
+            showDailyLogError(msg || 'Failed to save log.');
+            return;
+        }
+
+        const modalEl = document.getElementById('dailyLogModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        // reset minutes inputs for next time
+        (allSkills || []).forEach(skill => {
+            const input = document.getElementById(`skill_minutes_${skill.id}`);
+            if (input) input.value = '';
+        });
+
+        await refreshDashboard();
+    } catch (e) {
+        console.error(e);
+        showDailyLogError('Network error while saving log.');
+    }
+}
+
+async function createSkill() {
+    const errorEl = document.getElementById('skillError');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+    }
+
+    const name = (document.getElementById('newSkillName').value || '').trim();
+    const category = (document.getElementById('newSkillCategory').value || '').trim();
+    const colorHex = document.getElementById('newSkillColor').value || '#6c757d';
+
+    if (!name) {
+        showSkillError('Skill name is required.');
+        return;
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/skills`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, category, colorHex })
+        });
+
+        if (!resp.ok) {
+            const msg = await safeReadError(resp);
+            showSkillError(msg || 'Failed to create skill.');
+            return;
+        }
+
+        document.getElementById('newSkillName').value = '';
+        document.getElementById('newSkillCategory').value = '';
+
+        await loadSkills();
+        await refreshDashboard();
+    } catch (error) {
+        console.error('Error creating skill:', error);
+        showSkillError('Network error while creating skill.');
+    }
+}
+
+async function deleteSkill(skillId) {
+    if (!confirm('Delete this skill? If it is referenced by logs, deletion may fail.')) return;
+    const errorEl = document.getElementById('skillError');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/skills/${skillId}`, { method: 'DELETE' });
+        if (!resp.ok) {
+            const msg = await safeReadError(resp);
+            showSkillError(msg || 'Failed to delete skill (it may be referenced by logs).');
+            return;
+        }
+        await loadSkills();
+        await refreshDashboard();
+    } catch (e) {
+        console.error(e);
+        showSkillError('Network error while deleting skill.');
+    }
+}
+
+function showDailyLogError(msg) {
+    const errorEl = document.getElementById('dailyLogError');
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+}
+
+function showSkillError(msg) {
+    const errorEl = document.getElementById('skillError');
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+}
+
+async function safeReadError(resp) {
+    try {
+        const text = await resp.text();
+        if (!text) return null;
+        // Spring error responses can be JSON or plain text; avoid dumping huge payloads
+        return text.length > 300 ? text.slice(0, 300) + '…' : text;
+    } catch (_) {
+        return null;
+    }
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function getLast12MonthLabels() {
+    const labels = [];
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 11);
+    for (let i = 0; i < 12; i++) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        labels.push(`${y}-${m}`);
+        d.setMonth(d.getMonth() + 1);
+    }
+    return labels;
 }

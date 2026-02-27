@@ -43,13 +43,6 @@
             <version>3.0.3</version>
         </dependency>
         
-        <!-- H2 Database -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        
         <!-- PostgreSQL Driver (for production) -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -72,6 +65,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- Railway/Nixpacks sometimes builds with -Pproduction; keep it as a no-op profile -->
+    <profiles>
+        <profile>
+            <id>production</id>
+        </profile>
+    </profiles>
     
     <build>
         <plugins>
@@ -81,9 +81,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>25</source>
-                    <target>25</target>
-                    <fork>true</fork>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
             

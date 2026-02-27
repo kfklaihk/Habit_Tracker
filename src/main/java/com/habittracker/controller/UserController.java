@@ -17,11 +17,6 @@ public class UserController {
     
     private final UserService userService;
     
-    // Explicit constructor
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-    
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
